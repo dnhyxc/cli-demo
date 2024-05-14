@@ -4,34 +4,11 @@ const fs = require("fs-extra");
 const prompts = require("prompts");
 
 function canSkipEmptying(dir) {
-  console.log(dir, 'dirrrrrr', fs.existsSync(dir));
   if (fs.existsSync(dir)) {
-    console.log(dir, '222222222222', fs.existsSync(dir));
     return true;
   }
   return false;
 }
-
-const args = process.argv.slice(2);
-
-const options = {
-  typescript: { type: 'boolean' },
-  ts: { type: 'boolean' },
-  'with-tests': { type: 'boolean' },
-  tests: { type: 'boolean' },
-  'vue-router': { type: 'boolean' },
-  router: { type: 'boolean' },
-  'vue-devtools': { type: 'boolean' },
-  devtools: { type: 'boolean' }
-};
-
-const { values: argv, positionals } = parseArgs({
-  args,
-  options,
-  strict: false
-});
-
-console.log(argv, '----', argv.force, 'argv', positionals);
 
 let result = {};
 
@@ -89,8 +66,6 @@ const init = async (name, option) => {
         }
       }
     );
-
-    console.log(result, '11111');
   } catch (cancelled) {
     console.log(cancelled.message);
     process.exit(1);
