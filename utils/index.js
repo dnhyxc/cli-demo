@@ -138,7 +138,6 @@ const inquirerInputs = async (messages) => {
 const getScript = (projectName, pkg, execScript = null, projectPath) => {
   if (!pkg) {
     const pkgs = fs.readFileSync(`${projectPath}/package.json`, 'utf8')
-    console.log(JSON.parse(pkgs), 'pkgs')
     pkg = pkgs && JSON.parse(pkgs);
   }
   console.log(beautyLog.info, chalk.green(`cd ${projectName}`));

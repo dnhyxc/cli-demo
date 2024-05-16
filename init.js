@@ -55,6 +55,9 @@ const init = async (name, option) => {
     }, {
       name: 'needsEslint', type: 'toggle', message: '是否使用 eslint?', initial: false, active: 'no', inactive: 'yes'
     }, {
+    }, {
+      name: 'needsHusky', type: 'toggle', message: '是否使用 husky?', initial: false, active: 'no', inactive: 'yes'
+    }, {
       name: 'needsInstall',
       type: 'toggle',
       message: '是否自动安装依赖?',
@@ -67,13 +70,10 @@ const init = async (name, option) => {
       }
     });
   } catch (cancelled) {
-    console.log(cancelled.message);
     process.exit(1);
   }
 
-  console.log('result', result);
-
-  const { needsOverwrite, restoreProjectName, needsTypeScript, needsMbox, needsEslint, needsInstall } = result;
+  const { needsOverwrite, restoreProjectName, needsTypeScript, needsMbox, needsEslint, needsHusky, needsInstall } = result;
 
   // 重新设置项目名称及路径
   if (restoreProjectName) {
@@ -122,6 +122,10 @@ const init = async (name, option) => {
 
   if (!needsEslint) {
     render('config/eslint');
+  }
+
+  if (!needsHusky) {
+    render('config/husky');
   }
 
   if (!needsInstall) {
