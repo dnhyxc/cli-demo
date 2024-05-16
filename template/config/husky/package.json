@@ -1,7 +1,10 @@
 {
   "name": "dnhyxc-husky",
+  "version": "0.0.0",
   "scripts": {
     "prepare": "husky install"
   },
-  "husky": "^8.0.1"
+  "devDependencies": {
+    "husky": "^8.0.1"
+  }
 }
