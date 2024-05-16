@@ -1,9 +1,9 @@
-const path = require('path');
+const path = require('node:path');
 const fs = require('fs-extra');
+const { exec } = require('node:child_process');
 const ora = require('ora');
 const chalk = require('chalk');
 const inquirer = require('inquirer'); // 命令行交互
-const prompts = require('prompts'); // 命令行交互
 
 const isUnicodeSupported = () => {
   // 操作系统平台是否为 win32（Windows）
@@ -42,7 +42,6 @@ const fallback = {
 };
 
 const beautyLog = isUnicodeSupported() ? main : fallback;
-
 
 const getExecScript = (projectPath) => {
   // 检查 package-lock.json 是否存在
@@ -91,15 +90,15 @@ const inquirerConfirm = (message) => {
 // 删除指定文件夹
 const removeDir = async (dir) => {
   const spinner = ora({
-    text: `正在删除文件夹${ chalk.cyan(dir) }`, color: "yellow",
+    text: chalk.yellowBright(`正在删除文件夹: ${chalk.cyan(dir)}`),
   }).start();
 
   try {
     await fs.remove(dir);
-    spinner.succeed(chalk.greenBright(`删除文件夹${ chalk.cyan(dir) }成功`));
+    spinner.succeed(chalk.greenBright(`删除文件夹: ${chalk.cyan(dir)} 成功`));
   } catch (err) {
     console.log(err);
-    spinner.fail(chalk.redBright(`删除文件夹${ chalk.cyan(dir) }失败`));
+    spinner.fail(chalk.redBright(`删除文件夹: ${chalk.cyan(dir)} 失败`));
   }
 };
 
@@ -136,10 +135,71 @@ const inquirerInputs = async (messages) => {
   }));
 };
 
+const getScript = (projectName, pkg, execScript = null, projectPath) => {
+  if (!pkg) {
+    const pkgs = fs.readFileSync(`${projectPath}/package.json`, 'utf8')
+    console.log(JSON.parse(pkgs), 'pkgs')
+    pkg = pkgs && JSON.parse(pkgs);
+  }
+  console.log(beautyLog.info, chalk.green(`cd ${projectName}`));
+  execScript && console.log(beautyLog.info, chalk.green(`执行 ${execScript} 下载依赖`));
+  if (pkg?.scripts?.dev) {
+    console.log(beautyLog.info, chalk.green(`运行 npm run dev 启动项目`));
+    return;
+  }
+  if (pkg?.scripts?.start) {
+    console.log(beautyLog.info, chalk.green(`运行 npm start 启动项目`));
+    return;
+  }
+  if (pkg?.scripts?.serve) {
+    console.log(beautyLog.info, chalk.green(`运行 npm run serve 启动项目`));
+    return;
+  }
+  console.log(beautyLog.info, chalk.green(`按 package.json 中配置的 scripts 启动项目`));
+};
+
+const install = (projectPath, projectName, newPkg) => {
+  const spinner = ora('正在下载依赖...').start();
+  return new Promise(() => {
+    const execScript = getExecScript(projectPath);
+    exec(`cd ${projectPath} && ${execScript}`, (error, stdout, stderr) => {
+      console.log(beautyLog.info, `\n ${stdout}`);
+      if (error) {
+        const hasNode_modules = fs.existsSync(`${projectPath}/node_modules`);
+        if (hasNode_modules) {
+          spinner.fail(chalk.yellow(`执行${execScript}自动下载依赖存在警告`));
+          getScript(projectName, newPkg, null, projectPath);
+        } else {
+          console.log(beautyLog.error, `${error.message}`);
+          spinner.fail(chalk.red(`执行${execScript}自动下载依赖失败，请 cd ${projectName}，手动安装依赖`));
+        }
+        return;
+      }
+      spinner.succeed(chalk.green('依赖下载完成'));
+      getScript(projectName, newPkg, null, projectPath);
+    });
+  });
+};
+
+const manualInstall = (projectPath, projectName, newPkg) => {
+  const execScript = getExecScript(projectPath);
+  getScript(projectName, newPkg, execScript, projectPath);
+};
+
+// 校验项目名称
+const checkProjectName = (projectName) => {
+  // const pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+  const res = /^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(projectName);
+  return res;
+}
+
 module.exports = {
   beautyLog,
   inquirerConfirm,
   removeDir,
   inquirerChoose,
   inquirerInputs,
+  install,
+  manualInstall,
+  checkProjectName
 };
