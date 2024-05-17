@@ -11,6 +11,11 @@ const templates = [
   }
 ];
 
+const PKG = 'pkg.json'
+const PACKAGE = 'package.json'
+
 module.exports = {
   templates,
+  PKG,
+  PACKAGE
 };

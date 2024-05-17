@@ -2,7 +2,7 @@ const path = require("node:path");
 const fs = require("fs-extra");
 const prompts = require("prompts");
 const renderTemplate = require("./utils/renderTemplate");
-const { install, manualInstall, removeDir, beautyLog } = require('./utils');
+const { install, manualInstall, removeDir, fileRename } = require('./utils');
 
 function canSkipEmptying(dir) {
   if (fs.existsSync(dir)) {
@@ -16,9 +16,6 @@ let result = {};
 const init = async (name, option) => {
   // template 模版名称，force 是否强制覆盖
   const { force, template } = option
-
-  console.log('force', force, 'template', template)
-
   let projectName = name;
   let projectPath = path.join(process.cwd(), projectName);
 
@@ -127,6 +124,9 @@ const init = async (name, option) => {
   if (!needsHusky) {
     render('config/husky');
   }
+
+  // 将pkg.json重命名为package.json
+  fileRename(projectPath)
 
   if (!needsInstall) {
     await install(projectPath, projectName, newPkg);

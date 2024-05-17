@@ -4,6 +4,7 @@ const { exec } = require('node:child_process');
 const ora = require('ora');
 const chalk = require('chalk');
 const inquirer = require('inquirer'); // 命令行交互
+const { PKG, PACKAGE } = require('../constants');
 
 const isUnicodeSupported = () => {
   // 操作系统平台是否为 win32（Windows）
@@ -137,7 +138,7 @@ const inquirerInputs = async (messages) => {
 
 const getScript = (projectName, pkg, execScript = null, projectPath) => {
   if (!pkg) {
-    const pkgs = fs.readFileSync(`${projectPath}/package.json`, 'utf8')
+    const pkgs = fs.readFileSync(`${projectPath}/${PACKAGE}`, 'utf8')
     pkg = pkgs && JSON.parse(pkgs);
   }
   console.log(beautyLog.info, chalk.green(`cd ${projectName}`));
@@ -154,7 +155,7 @@ const getScript = (projectName, pkg, execScript = null, projectPath) => {
     console.log(beautyLog.info, chalk.green(`运行 npm run serve 启动项目`));
     return;
   }
-  console.log(beautyLog.info, chalk.green(`按 package.json 中配置的 scripts 启动项目`));
+  console.log(beautyLog.info, chalk.green(`按 ${PACKAGE} 中配置的 scripts 启动项目`));
 };
 
 const install = (projectPath, projectName, newPkg) => {
@@ -162,7 +163,8 @@ const install = (projectPath, projectName, newPkg) => {
   return new Promise(() => {
     const execScript = getExecScript(projectPath);
     exec(`cd ${projectPath} && ${execScript}`, (error, stdout, stderr) => {
-      console.log(beautyLog.info, `\n ${stdout}`);
+      console.log(chalk.yellow(`${stdout}\n`));
+      console.log(chalk.yellow(`${stderr}`));
       if (error) {
         const hasNode_modules = fs.existsSync(`${projectPath}/node_modules`);
         if (hasNode_modules) {
@@ -192,6 +194,27 @@ const checkProjectName = (projectName) => {
   return res;
 }
 
+const verifyDir = (dir) => {
+  return fs.existsSync(dir);
+};
+
+const fileRename = (projectPath) => {
+  // 检查文件是否存在
+  const filePath = path.join(projectPath, PKG);
+  if (fs.existsSync(filePath)) {
+    // 重命名文件
+    fs.renameSync(filePath, path.join(projectPath, PACKAGE), (err) => {
+      if (err) {
+        console.error('文件重命名失败:', err);
+      } else {
+        console.log('文件重命名成功');
+      }
+    });
+  } else {
+    console.log('文件不存在');
+  }
+}
+
 module.exports = {
   beautyLog,
   inquirerConfirm,
@@ -200,5 +223,7 @@ module.exports = {
   inquirerInputs,
   install,
   manualInstall,
-  checkProjectName
+  checkProjectName,
+  verifyDir,
+  fileRename
 };

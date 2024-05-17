@@ -1,5 +1,6 @@
 const path = require('node:path');
 const fs = require('fs-extra');
+const { PKG } = require('../constants');
 const { deepMerge, sortDependencies } = require('../utils/deepMerge.js');
 
 const renderTemplate = (templateDir, targetPath, projectName, callback) => {
@@ -22,7 +23,7 @@ const renderTemplate = (templateDir, targetPath, projectName, callback) => {
   const filename = path.basename(templateDir);
 
   // fs.existsSync(dest) 判断文件是否存在
-  if (filename === 'package.json' && fs.existsSync(targetPath)) {
+  if (filename === PKG && fs.existsSync(targetPath)) {
     // 已经设置好的 package 内容
     const existedPackage = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
     // 需要合并进入的新的 package 内容
